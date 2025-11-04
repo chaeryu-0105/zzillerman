@@ -24,18 +24,27 @@ class player(pg.sprite.Sprite):
         self.attacking = False
         self.attack_timer = 0
         self.attack_cooltime = 0
+        self.hp = 5
+        self.stamina = 100
 
     def move(self):
         keys = pg.key.get_pressed()
         dx, dy = 0, 0
         if self.rect.left > 0 and keys[K_a]:
-             dx = -movespeed
+            dx = -movespeed
         if self.rect.right < width and keys[K_d]:
-             dx = movespeed
+            dx = movespeed
         if self.rect.top > 0 and keys[K_w]:
-             dy = -movespeed
+            dy = -movespeed
         if self.rect.bottom < height and keys[K_s]:
-             dy = movespeed
+            dy = movespeed
+        if self.rect.bottom < height and self.rect.top > 0 and self.rect.left > 0 and self.rect.right < width and keys[K_SPACE] and self.stamina > 20:
+            self.stamina -= 8
+            dx *= 3
+            dy *= 3
+        self.stamina += 0.5
+        if self.stamina > 100:
+            self.stamina = 100
         self.rect.move_ip(dx, dy)
         position = self.rect.center
         return position
@@ -75,11 +84,13 @@ class player(pg.sprite.Sprite):
             self.attacking = True
             self.attack_timer = pg.time.get_ticks()
 
+    
 
 
 
 pg.init()
 pg.display.set_caption('zzilerman')
+font = pg.font.SysFont(None, 30, False, False)
 maindisplay = pg.display.set_mode((width, height), 0, 32)
 maindisplay.fill(white)
 clock = pg.time.Clock()
@@ -94,9 +105,11 @@ while True:
             sys.exit()
         if event.type == pg.MOUSEBUTTONDOWN:
             P1.swordattack()
+    text = font.render("stamina: " + str(P1.stamina), True, black, None)
     P1.move() 
     P1.swordmove()
     maindisplay.blit(P1.image, P1.rect)
     maindisplay.blit(P1.sword, P1.swordrect)
+    maindisplay.blit(text, [0, 0])
     pg.display.update()
     clock.tick(fps)
