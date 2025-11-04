@@ -87,13 +87,13 @@ clock = pg.time.Clock()
 P1 = player()
 
 while True:
+    maindisplay.fill(white)
     for event in pg.event.get():
         if event.type == QUIT:
             pg.quit()
             sys.exit()
         if event.type == pg.MOUSEBUTTONDOWN:
             P1.swordattack()
-    maindisplay.fill(white)
     P1.move() 
     P1.swordmove()
     maindisplay.blit(P1.image, P1.rect)
