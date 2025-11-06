@@ -14,45 +14,58 @@ movespeed = 7
 class player(pg.sprite.Sprite):
     def __init__(self):
         super().__init__()
-        self.image = pg.image.load('images/playercharacter.png')
-        self.rect = self.image.get_rect()
-        self.originsword = pg.image.load('images/sword.png')
-        self.sword = self.originsword
-        self.swordrect = self.sword.get_rect()
-        self.rect.center = (width / 2, height / 2)
+        self.chartimage = pg.image.load('images/playercharacter.png')
+        self.originswordimage = pg.image.load('images/sword.png')
+        self.originstaminaimage = pg.image.load('images/stamina.png')
+        self.originhpimage = pg.image.load('images/playerhp.png')
+        
+        self.charsprite = self.chartimage.get_rect()
+        self.charsprite.center = (width / 2, height / 2)
+
+        self.swordimage = self.originswordimage
+        self.swordsprite = self.swordimage.get_rect()
+        
+        self.hpimage = self.originhpimage
+        self.hpsprite = self.hpimage.get_rect()
+        self.hpsprite.center = (width / 30, height / 10)
+        
+        self.staminaimage = self.originstaminaimage
+        self.staminasprite = self.staminaimage.get_rect()
+        self.staminasprite.center = (width / 30, height / 10 - height / 20)
+
         self.distance = 30
         self.attacking = False
         self.attack_timer = 0
         self.attack_cooltime = 0
-        self.hp = 5
+        self.hp = 100
         self.stamina = 100
 
     def move(self):
         keys = pg.key.get_pressed()
         dx, dy = 0, 0
-        if self.rect.left > 0 and keys[K_a]:
+        if self.charsprite.left > 0 and keys[K_a]:
             dx = -movespeed
-        if self.rect.right < width and keys[K_d]:
+        if self.charsprite.right < width and keys[K_d]:
             dx = movespeed
-        if self.rect.top > 0 and keys[K_w]:
+        if self.charsprite.top > 0 and keys[K_w]:
             dy = -movespeed
-        if self.rect.bottom < height and keys[K_s]:
+        if self.charsprite.bottom < height and keys[K_s]:
             dy = movespeed
-        if self.rect.bottom < height and self.rect.top > 0 and self.rect.left > 0 and self.rect.right < width and keys[K_SPACE] and self.stamina > 20:
+        if self.charsprite.bottom < height and self.charsprite.top > 0 and self.charsprite.left > 0 and self.charsprite.right < width and keys[K_SPACE] and self.stamina > 20:
             self.stamina -= 8
             dx *= 3
             dy *= 3
         self.stamina += 0.5
         if self.stamina > 100:
             self.stamina = 100
-        self.rect.move_ip(dx, dy)
-        position = self.rect.center
+        self.charsprite.move_ip(dx, dy)
+        position = self.charsprite.center
         return position
     
     def swordmove(self):
         mx, my = pg.mouse.get_pos()
-        cx = self.rect.centerx
-        cy = self.rect.centery
+        cx = self.charsprite.centerx
+        cy = self.charsprite.centery
         dx = mx - cx
         dy = my - cy
 
@@ -65,13 +78,13 @@ class player(pg.sprite.Sprite):
 
         sword_x = cx + dir_x * self.distance
         sword_y = cy + dir_y * self.distance
-        self.swordrect.center = (sword_x, sword_y)
+        self.swordsprite.center = (sword_x, sword_y)
 
         angle_rad = -math.atan2(dx, dy)
         angle_deg = math.degrees(angle_rad) + 180
 
-        self.sword = pg.transform.rotate(self.originsword, -angle_deg)
-        self.swordrect = self.sword.get_rect(center=self.swordrect.center)
+        self.swordimage = pg.transform.rotate(self.originswordimage, -angle_deg)
+        self.swordsprite = self.swordimage.get_rect(center=self.swordsprite.center)
         if self.attacking and pg.time.get_ticks() - self.attack_timer > 50:
             print("attack!")
             self.distance = 30
@@ -83,7 +96,17 @@ class player(pg.sprite.Sprite):
             self.distance = 50
             self.attacking = True
             self.attack_timer = pg.time.get_ticks()
+    
+    def staminagauge(self):
+        self.staminaimage = pg.transform.rotate(self.originstaminaimage, -90)
+        self.staminaimage = pg.transform.scale_by(self.staminaimage, (self.stamina / 100 * 3, 2))
+        pass
 
+    def hpgauge(self):
+        self.hpimage = pg.transform.rotate(self.originhpimage, -90)
+        self.hpimage = pg.transform.scale_by(self.hpimage, (self.hp / 100 * 3, 2))
+        
+        pass
     
 
 
@@ -108,8 +131,13 @@ while True:
     text = font.render("stamina: " + str(P1.stamina), True, black, None)
     P1.move() 
     P1.swordmove()
-    maindisplay.blit(P1.image, P1.rect)
-    maindisplay.blit(P1.sword, P1.swordrect)
+    P1.hpgauge()
+    P1.staminagauge()
+    maindisplay.blit(P1.chartimage, P1.charsprite)
+    maindisplay.blit(P1.swordimage, P1.swordsprite)
+    maindisplay.blit(P1.hpimage, P1.hpsprite)
+    maindisplay.blit(P1.staminaimage, P1.staminasprite)
+    
     maindisplay.blit(text, [0, 0])
     pg.display.update()
     clock.tick(fps)
