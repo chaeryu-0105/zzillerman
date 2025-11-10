@@ -14,26 +14,26 @@ movespeed = 7
 class player(pg.sprite.Sprite):
     def __init__(self):
         super().__init__()
+        #이미지 로드
         self.chartimage = pg.image.load('images/playercharacter.png')
         self.originswordimage = pg.image.load('images/sword.png')
         self.originstaminaimage = pg.image.load('images/stamina.png')
         self.originhpimage = pg.image.load('images/playerhp.png')
-        
+        #초기위치 세팅
+        self.chartimage = pg.transform.scale_by(self.chartimage, (0.5, 0.5))
         self.charsprite = self.chartimage.get_rect()
         self.charsprite.center = (width / 2, height / 2)
-
+        self.originswordimage = pg.transform.scale_by(self.originswordimage, (0.5, 0.5))
         self.swordimage = self.originswordimage
         self.swordsprite = self.swordimage.get_rect()
-        
         self.hpimage = self.originhpimage
         self.hpsprite = self.hpimage.get_rect()
         self.hpsprite.center = (width / 30, height / 10)
-        
         self.staminaimage = self.originstaminaimage
         self.staminasprite = self.staminaimage.get_rect()
         self.staminasprite.center = (width / 30, height / 10 - height / 20)
-
-        self.distance = 30
+        #변수들 모음
+        self.distance = 20
         self.attacking = False
         self.attack_timer = 0
         self.attack_cooltime = 0
@@ -87,33 +87,32 @@ class player(pg.sprite.Sprite):
         self.swordsprite = self.swordimage.get_rect(center=self.swordsprite.center)
         if self.attacking and pg.time.get_ticks() - self.attack_timer > 50:
             print("attack!")
-            self.distance = 30
+            self.distance = 20
             self.attacking = False
             self.attack_cooltime = pg.time.get_ticks()
     
     def swordattack(self):
         if self.attack_cooltime - pg.time.get_ticks() < -700:
-            self.distance = 50
+            self.distance = 40
             self.attacking = True
             self.attack_timer = pg.time.get_ticks()
     
     def staminagauge(self):
         self.staminaimage = pg.transform.rotate(self.originstaminaimage, -90)
         self.staminaimage = pg.transform.scale_by(self.staminaimage, (self.stamina / 100 * 3, 2))
-        pass
 
     def hpgauge(self):
         self.hpimage = pg.transform.rotate(self.originhpimage, -90)
         self.hpimage = pg.transform.scale_by(self.hpimage, (self.hp / 100 * 3, 2))
         
-        pass
+class boss(pg.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
     
-
 
 
 pg.init()
 pg.display.set_caption('zzilerman')
-font = pg.font.SysFont(None, 30, False, False)
 maindisplay = pg.display.set_mode((width, height), 0, 32)
 maindisplay.fill(white)
 clock = pg.time.Clock()
@@ -128,7 +127,6 @@ while True:
             sys.exit()
         if event.type == pg.MOUSEBUTTONDOWN:
             P1.swordattack()
-    text = font.render("stamina: " + str(P1.stamina), True, black, None)
     P1.move() 
     P1.swordmove()
     P1.hpgauge()
@@ -138,6 +136,5 @@ while True:
     maindisplay.blit(P1.hpimage, P1.hpsprite)
     maindisplay.blit(P1.staminaimage, P1.staminasprite)
     
-    maindisplay.blit(text, [0, 0])
     pg.display.update()
     clock.tick(fps)
