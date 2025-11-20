@@ -135,29 +135,45 @@ class Bullet(pg.sprite.Sprite):
 class Boss(pg.sprite.Sprite):
     def __init__(self):
         super().__init__()
-        #이미지 로드
         self.image = pg.image.load('images/boss.png')
         self.image = pg.transform.scale_by(self.image, (0.7, 0.7))
         self.originhpimage = pg.image.load('images/playerhp.png')
         self.hpimage = self.originhpimage
 
-        #이미지 처리
         self.rect = self.image.get_rect()
         self.rect.center = (width // 2, height // 5)
         self.hpsprite = self.hpimage.get_rect()
         self.hpsprite.center = (width // 2, height // 20)
 
-        #변수
         self.hp = 300
         self.last_shot = 0
         self.shot_delay = 1000
 
-
     def update(self, player_pos, bullet_group):
         now = pg.time.get_ticks()
         if now - self.last_shot > self.shot_delay:
-            bullet = Bullet(self.rect.centerx, self.rect.centery, player_pos)
-            bullet_group.add(bullet)
+            cx, cy = self.rect.center
+            dx = player_pos[0] - cx
+            dy = player_pos[1] - cy
+            length = math.hypot(dx, dy)
+            if length == 0:
+                length = 1
+            dir_x = dx / length
+            dir_y = dy / length
+
+            # 보스 외곽에서 시작점
+            radius = self.rect.width // 2
+            start_x = cx + dir_x * radius
+            start_y = cy + dir_y * radius
+
+            # 직선 위에 세 발 배치
+            offset = 25  # 총알 간격
+            for i in range(3):
+                bullet_start_x = start_x + dir_x * offset * i
+                bullet_start_y = start_y + dir_y * offset * i
+                bullet = Bullet(bullet_start_x, bullet_start_y, player_pos)
+                bullet_group.add(bullet)
+
             self.last_shot = now
 
     def hpgauge(self):
