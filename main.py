@@ -24,8 +24,8 @@ def draw_text(surface, text, size, x, y, color=black):
 # ----- 시작 화면 -----
 def show_start_screen():
     maindisplay.fill(white)
-    draw_text(maindisplay, "ZZILER MAN", 72, width//2, height//3)
-    draw_text(maindisplay, "Press any key to start", 36, width//2, height//2)
+    draw_text(maindisplay, "ZZILER MAN", 72, width // 2, height // 3)
+    draw_text(maindisplay, "Press any key to start", 36, width // 2, height // 2)
     pg.display.update()
     waiting = True
     while waiting:
@@ -41,10 +41,10 @@ def show_start_screen():
 # ----- 게임오버 화면 -----
 def show_gameover_screen(time_survived, boss_hp):
     maindisplay.fill(white)
-    draw_text(maindisplay, "GAME OVER", 72, width//2, height//3)
-    draw_text(maindisplay, f"Time Survived: {time_survived:.2f} s", 36, width//2, height//2)
-    draw_text(maindisplay, f"Boss HP Left: {boss_hp}", 36, width//2, height//2 + 50)
-    draw_text(maindisplay, "Press any key to restart", 36, width//2, height//2 + 120)
+    draw_text(maindisplay, "GAME OVER", 72, width // 2, height // 3)
+    draw_text(maindisplay, f"Time Survived: {time_survived:.2f} s", 36, width // 2, height // 2)
+    draw_text(maindisplay, f"Boss HP Left: {boss_hp}", 36, width // 2, height // 2 + 50)
+    draw_text(maindisplay, "Press any key to restart", 36, width // 2, height // 2 + 120)
     pg.display.update()
     waiting = True
     while waiting:
@@ -60,9 +60,9 @@ def show_gameover_screen(time_survived, boss_hp):
 # ----- 클리어 화면 -----
 def show_clear_screen(time_survived):
     maindisplay.fill(white)
-    draw_text(maindisplay, "CLEAR!", 72, width//2, height//3)
-    draw_text(maindisplay, f"Time Survived: {time_survived:.2f} s", 36, width//2, height//2)
-    draw_text(maindisplay, "Press any key to restart", 36, width//2, height//2 + 80)
+    draw_text(maindisplay, "CLEAR!", 72, width // 2, height // 3)
+    draw_text(maindisplay, f"Time Survived: {time_survived:.2f} s", 36, width // 2, height // 2)
+    draw_text(maindisplay, "Press any key to restart", 36, width // 2, height // 2 + 80)
     pg.display.update()
     waiting = True
     while waiting:
@@ -172,9 +172,9 @@ class Boss(pg.sprite.Sprite):
         self.hpimage = self.originhpimage
 
         self.rect = self.image.get_rect()
-        self.rect.center = (width//2, ui_height + (height-ui_height)//2)
+        self.rect.center = (width // 2, ui_height + (height-ui_height) // 2)
         self.hpsprite = self.hpimage.get_rect()
-        self.hpsprite.center = (width*7//15, ui_height//2)
+        self.hpsprite.center = (width*7 // 15, ui_height // 2)
 
         self.hp = 300
         self.last_shot = 0
@@ -202,7 +202,7 @@ class Boss(pg.sprite.Sprite):
 
         # 패턴 발동
         if not self.attack_active and not self.charging and now - self.last_shot >= self.shot_delay:
-            pattern = random.choice([1,2,3,4,5,6])
+            pattern = random.choice([1, 2, 3, 4, 5, 6])
             if pattern == 1: 
                 self.pattern1(player_pos, bullet_group)
             if pattern == 2: 
@@ -245,7 +245,7 @@ class Boss(pg.sprite.Sprite):
                 proj = px_rel * vx + py_rel * vy
                 if 0 <= proj <= self.charge_distance:
                     perp = abs(px_rel * vy - py_rel * vx)
-                    if perp <= self.charge_width/2:
+                    if perp <= self.charge_width / 2:
                         if now - self.last_touch_damage > self.touch_damage_delay:
                             player.hp -= 20
                             self.last_touch_damage = now
@@ -276,13 +276,13 @@ class Boss(pg.sprite.Sprite):
         cx, cy = self.rect.center
         dx, dy = player_pos[0]-cx, player_pos[1]-cy
         angle = math.degrees(math.atan2(dy, dx))
-        self.attack_zone = ("sector", (cx, cy, 200, angle-30, angle+30))
+        self.attack_zone = ("sector", (cx, cy, 200, angle - 30, angle + 30))
         self.pre_delay = 500
 
     def pattern4(self, player_pos):
         cx, cy = self.rect.center
         size = max(self.rect.width, self.rect.height)
-        self.attack_zone = ("ring", (cx, cy, size*1.3, size*3))
+        self.attack_zone = ("ring", (cx, cy, size * 1.3, size * 3))
         self.pre_delay = 700
 
     def pattern5(self, player_pos):
@@ -337,17 +337,17 @@ class Boss(pg.sprite.Sprite):
         if kind == "sector":
             cx, cy, radius, ang_min, ang_max = data
             points = [(cx, cy)]
-            for ang in range(int(ang_min), int(ang_max)+1, 5):
+            for ang in range(int(ang_min), int(ang_max) + 1, 5):
                 rad = math.radians(ang)
                 x = cx + radius * math.cos(rad)
                 y = cy + radius * math.sin(rad)
                 points.append((x, y))
-            pg.draw.polygon(surface, (255,0,0,100), points)
+            pg.draw.polygon(surface, (255, 0, 0, 100), points)
 
         elif kind == "ring":
             cx, cy, safe, danger = data
-            pg.draw.circle(surface, (255,0,0,100), (cx, cy), danger)
-            pg.draw.circle(surface, (255,255,255,100), (cx, cy), safe)
+            pg.draw.circle(surface, (255, 0, 0, 100), (cx, cy), danger)
+            pg.draw.circle(surface, (255, 255, 255, 100), (cx, cy), safe)
 
         elif kind == "charge":
             dir_x, dir_y = data
