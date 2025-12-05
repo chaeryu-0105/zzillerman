@@ -13,6 +13,22 @@ fps = 30
 movespeed = 7
 ui_height = 100  # 상단 UI 영역 높이
 
+# ----- 사운드 -----
+
+pg.init()
+pg.mixer.init()
+pg.mixer.music.load("musics/bgm.mp3")
+attack_sound = pg.mixer.Sound("musics/attacking.wav")
+before_attack_sound = pg.mixer.Sound("musics/before_attack.wav")
+swing_sound = pg.mixer.Sound("musics/sword_swing.wav")
+victory_sound = pg.mixer.Sound("musics/victory.mp3")
+
+pg.mixer.music.set_volume(0.1)
+attack_sound.set_volume(1.0)
+before_attack_sound.set_volume(0.1)
+swing_sound.set_volume(1.0)
+victory_sound.set_volume(1.0)
+
 # ----- 화면 텍스트 함수 -----
 def draw_text(surface, text, size, x, y, color=black):
     font = pg.font.SysFont('arial', size)
@@ -23,6 +39,7 @@ def draw_text(surface, text, size, x, y, color=black):
 
 # ----- 시작 화면 -----
 def show_start_screen():
+    pg.mixer.music.play(-1)
     maindisplay.fill(white)
     draw_text(maindisplay, "ZZILER MAN", 72, width // 2, height // 3)
     draw_text(maindisplay, "Press any key to start", 36, width // 2, height // 2)
@@ -40,40 +57,54 @@ def show_start_screen():
 
 # ----- 게임오버 화면 -----
 def show_gameover_screen(time_survived, boss_hp):
+    pg.mixer.music.stop()
     maindisplay.fill(white)
     draw_text(maindisplay, "GAME OVER", 72, width // 2, height // 3)
     draw_text(maindisplay, f"Time Survived: {time_survived:.2f} s", 36, width // 2, height // 2)
     draw_text(maindisplay, f"Boss HP Left: {boss_hp}", 36, width // 2, height // 2 + 50)
     draw_text(maindisplay, "Press any key to restart", 36, width // 2, height // 2 + 120)
     pg.display.update()
+
+    min_wait = 1200  # ms
+    start = pg.time.get_ticks()
+
     waiting = True
     while waiting:
         clock.tick(fps)
+        now = pg.time.get_ticks()
         for event in pg.event.get():
             if event.type == QUIT:
-                pg.quit()
-                sys.exit()
-            if event.type == KEYDOWN or event.type == MOUSEBUTTONDOWN:
+                pg.quit(); sys.exit()
+            if now - start >= min_wait and (event.type == KEYDOWN or event.type == MOUSEBUTTONDOWN):
+                pg.mixer.music.play(-1)
                 waiting = False
-                return
+                return  # restart game
 
 # ----- 클리어 화면 -----
 def show_clear_screen(time_survived):
+    pg.mixer.music.stop()
+    victory_sound.play()
     maindisplay.fill(white)
     draw_text(maindisplay, "CLEAR!", 72, width // 2, height // 3)
     draw_text(maindisplay, f"Time Survived: {time_survived:.2f} s", 36, width // 2, height // 2)
-    draw_text(maindisplay, "Press any key to restart", 36, width // 2, height // 2 + 80)
+    draw_text(maindisplay, "Press any key to exit", 36, width // 2, height // 2 + 80)
     pg.display.update()
-    waiting = True
-    while waiting:
+    min_wait = 1200
+    start = pg.time.get_ticks()
+    while True:
         clock.tick(fps)
+        now = pg.time.get_ticks()
         for event in pg.event.get():
             if event.type == QUIT:
                 pg.quit()
                 sys.exit()
+            if now - start >= min_wait and (event.type == KEYDOWN or event.type == MOUSEBUTTONDOWN):
+                pg.quit()
+                sys.exit()
             if event.type == KEYDOWN or event.type == MOUSEBUTTONDOWN:
-                waiting = False
-                return
+                pg.quit()
+                sys.exit()
+
 
 # ----- 플레이어 클래스 -----
 class Player(pg.sprite.Sprite):
@@ -137,6 +168,7 @@ class Player(pg.sprite.Sprite):
             self.distance = 40
             self.attacking = True
             self.attack_timer = pg.time.get_ticks()
+            swing_sound.play()
 
     def hpgauge(self):
         self.hp = max(self.hp, 0)
@@ -205,15 +237,21 @@ class Boss(pg.sprite.Sprite):
             pattern = random.choice([1, 2, 3, 4, 5, 6])
             if pattern == 1: 
                 self.pattern1(player_pos, bullet_group)
+                attack_sound.play()
             if pattern == 2: 
                 self.pattern2(player_pos, bullet_group)
+                attack_sound.play()
             if pattern == 3: 
+                before_attack_sound.play()
                 self.pattern3(player_pos)
             if pattern == 4: 
+                before_attack_sound.play()
                 self.pattern4(player_pos)
             if pattern == 5: 
+                before_attack_sound.play()
                 self.pattern5(player_pos)
             if pattern == 6: 
+                before_attack_sound.play()
                 self.pattern6(player_pos)
             self.attack_active = True
             self.attack_time = now
@@ -249,6 +287,7 @@ class Boss(pg.sprite.Sprite):
                         if now - self.last_touch_damage > self.touch_damage_delay:
                             player.hp -= 20
                             self.last_touch_damage = now
+                            attack_sound.play()
             else:
                 self.charging = False
                 self.attack_active = False
@@ -310,22 +349,27 @@ class Boss(pg.sprite.Sprite):
             dx, dy = px-cx, py-cy
             dist = math.hypot(dx, dy)
             ang = math.degrees(math.atan2(dy, dx))
+            attack_sound.play()
             if dist <= radius and ang_min <= ang <= ang_max:
                 player.hp -= 15
+                
 
         elif kind == "ring":
             cx, cy, safe, danger = data
             dx, dy = px-cx, py-cy
             dist = math.hypot(dx, dy)
+            attack_sound.play()
             if safe < dist <= danger:
                 player.hp -= 30
 
         elif kind == "charge":
             self.charging = True
             self.charge_start = pg.time.get_ticks()
+            attack_sound.play()
 
         elif kind == "explosion":
             x, y, r = data
+            attack_sound.play()
             if math.hypot(px-x, py-y) <= r:
                 player.hp -= 25
 
@@ -374,7 +418,6 @@ class Boss(pg.sprite.Sprite):
         self.hpimage = pg.transform.scale_by(self.hpimage, (self.hp / 300 * 10, 2))
 
 # ----- 메인 실행 -----
-pg.init()
 pg.display.set_caption('zzilerman')
 maindisplay = pg.display.set_mode((width, height), 0, 32)
 clock = pg.time.Clock()
